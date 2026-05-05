@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}{{ candidate.name }} — ResumeAI{% endblock %}
+{% block page_title %}// Candidate Profile{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:16px;">
+    <a href="{{ url_for('results') }}" class="btn btn-outline btn-sm">← Back to Rankings</a>
+</div>
+
+<div class="grid-2">
+    <div>
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-title">// Candidate Info</div>
+            <div style="margin-bottom:16px;">
+                <div style="font-size:1.4rem;font-weight:700;margin-bottom:4px;">{{ candidate.name }}</div>
+                <div style="color:var(--muted);font-size:.875rem;">{{ candidate.email }}</div>
+            </div>
+            <div style="border-top:1px solid var(--border);padding-top:16px;">
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:.72rem;color:var(--muted);margin-bottom:3px;">APPLIED FOR</div>
+                    <div style="font-weight:600;">{{ candidate.job_title or 'Not specified' }}</div>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <div style="font-size:.72rem;color:var(--muted);margin-bottom:3px;">UPLOADED ON</div>
+                    <div style="font-family:var(--mono);font-size:.8rem;">{{ candidate.uploaded_at }}</div>
+                </div>
+                <div>
+                    <div style="font-size:.72rem;color:var(--muted);margin-bottom:3px;">RESUME FILE</div>
+                    <div style="font-family:var(--mono);font-size:.78rem;color:var(--accent);">{{ candidate.filename }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">// Match Score</div>
+            {% set s = candidate.match_score %}
+            <div style="text-align:center;padding:16px 0;">
+                <div style="font-family:var(--mono);font-size:3rem;font-weight:700;
+                    color:{% if s >= 70 %}var(--green){% elif s >= 40 %}var(--yellow){% else %}var(--red){% endif %};">
+                    {{ s }}%
+                </div>
+                <div style="color:var(--muted);font-size:.8rem;margin-top:6px;">
+                    {% if s >= 70 %}Strong Match ✓{% elif s >= 40 %}Moderate Match ≈{% else %}Weak Match ✗{% endif %}
+                </div>
+                <div class="progress-bar-bg" style="margin-top:16px;height:8px;">
+                    <div class="progress-bar-fill" style="width:{{ s }}%;"></div>
+                </div>
+                {% if candidate.required_skills %}
+                <div style="font-size:.75rem;color:var(--muted);margin-top:12px;">Job Required: {{ candidate.required_skills }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card-title">// Skills Detected</div>
+            {% if skills %}
+                <div>
+                    {% for skill in skills %}
+                    <span class="tag">{{ skill }}</span>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="color:var(--muted);font-size:.875rem;">No known skills detected in the resume text.</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-title">// Resume Text Preview</div>
+            <div style="max-height:340px;overflow-y:auto;font-size:.78rem;color:var(--muted);font-family:var(--mono);line-height:1.6;white-space:pre-wrap;word-break:break-word;">{{ candidate.resume_text[:2000] if candidate.resume_text else 'No text extracted.' }}{% if candidate.resume_text and candidate.resume_text|length > 2000 %}
+...
+<span style="color:var(--accent);">[{{ candidate.resume_text|length - 2000 }} more characters]</span>{% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="margin-top:20px;">
+    <a href="{{ url_for('delete_candidate', cid=candidate.id) }}" class="btn btn-danger"
+       onclick="return confirm('Remove this candidate permanently?')">✕ Remove Candidate</a>
+</div>
+{% endblock %}

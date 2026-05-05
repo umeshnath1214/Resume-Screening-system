@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — ResumeAI{% endblock %}
+{% block page_title %}// Dashboard{% endblock %}
+
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <div class="stat-label">Total Candidates</div>
+        <div class="stat-value">{{ total_candidates }}</div>
+    </div>
+    <div class="stat-card purple">
+        <div class="stat-label">Job Openings</div>
+        <div class="stat-value">{{ total_jobs }}</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-label">Avg Match Score</div>
+        <div class="stat-value">{{ avg_score }}%</div>
+    </div>
+</div>
+
+<div class="grid-2">
+    <div class="card">
+        <div class="card-title">// Top Candidates</div>
+        {% if top_candidates %}
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr><th>#</th><th>Name</th><th>Job</th><th>Score</th></tr>
+                </thead>
+                <tbody>
+                {% for c in top_candidates %}
+                <tr>
+                    <td><span class="rank">{% if loop.index==1 %}🥇{% elif loop.index==2 %}🥈{% elif loop.index==3 %}🥉{% else %}#{{ loop.index }}{% endif %}</span></td>
+                    <td>{{ c.name }}</td>
+                    <td style="color:var(--muted);font-size:.82rem;">{{ c.job_title or '—' }}</td>
+                    <td>
+                        {% set s = c.match_score %}
+                        <span class="score-badge {% if s >= 70 %}score-high{% elif s >= 40 %}score-mid{% else %}score-low{% endif %}">
+                            {{ s }}%
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color:var(--muted);font-size:.875rem;">No candidates yet. <a href="{{ url_for('upload') }}" style="color:var(--accent);">Upload resumes →</a></p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-title">// Score Distribution</div>
+        <canvas id="scoreChart" height="200"></canvas>
+    </div>
+</div>
+
+<div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+    <a href="{{ url_for('jobs') }}" class="btn btn-outline">+ Add Job Opening</a>
+    <a href="{{ url_for('upload') }}" class="btn btn-primary">↑ Upload Resume</a>
+    <a href="{{ url_for('results') }}" class="btn btn-outline">≡ View All Candidates</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Jinja2 doesn't have enumerate, let's just inline the rank
+const rows = document.querySelectorAll('tbody tr');
+rows.forEach((r, i) => {
+    const rankCell = r.querySelector('.rank');
+    if (rankCell) rankCell.className = `rank rank-${i+1}`;
+});
+
+// Score distribution chart
+fetch('/api/score_distribution')
+    .then(r => r.json())
+    .then(data => {
+        const ctx = document.getElementById('scoreChart');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    label: 'Candidates',
+                    data: Object.values(data),
+                    backgroundColor: ['#f76b6b55','#f7c94f55','#4f8ef755','#7c5cfc55','#22d3a255'],
+                    borderColor: ['#f76b6b','#f7c94f','#4f8ef7','#7c5cfc','#22d3a2'],
+                    borderWidth: 2, borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#7a8399' }, grid: { color: '#2a3044' } },
+                    y: { ticks: { color: '#7a8399', stepSize: 1 }, grid: { color: '#2a3044' }, beginAtZero: true }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

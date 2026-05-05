@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Upload Resume — ResumeAI{% endblock %}
+{% block page_title %}// Upload Resume{% endblock %}
+
+{% block content %}
+<div style="max-width:600px;">
+    <div class="card">
+        <div class="card-title">// Resume Submission Form</div>
+        <form method="POST" enctype="multipart/form-data" id="uploadForm">
+            <div class="form-group">
+                <label>Candidate Name</label>
+                <input type="text" name="candidate_name" required placeholder="Full Name"/>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="candidate_email" required placeholder="candidate@email.com"/>
+            </div>
+            <div class="form-group">
+                <label>Apply for Job</label>
+                <select name="job_id" required>
+                    <option value="">— Select a job opening —</option>
+                    {% for job in jobs %}
+                    <option value="{{ job.id }}">{{ job.job_title }}</option>
+                    {% endfor %}
+                </select>
+                {% if not jobs %}
+                <div style="font-size:.75rem;color:var(--red);margin-top:6px;">⚠ No jobs available. <a href="{{ url_for('jobs') }}" style="color:var(--accent);">Add a job first →</a></div>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label>Resume File</label>
+                <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📄</div>
+                    <div class="upload-text">
+                        <strong style="color:var(--text);" id="fileName">Click to upload or drag & drop</strong><br>
+                        PDF, DOC, DOCX — max 5MB
+                    </div>
+                    <input type="file" name="resume" id="fileInput" accept=".pdf,.doc,.docx" required style="display:none"/>
+                </div>
+            </div>
+            <button class="btn btn-primary" type="submit" id="submitBtn">
+                ↑ Upload & Screen Resume
+            </button>
+        </form>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+        <div class="card-title">// How It Works</div>
+        <div style="display:flex;flex-direction:column;gap:14px;">
+            {% for step, desc in [('01', 'Upload the candidate\'s resume in PDF or DOCX format'), ('02', 'System extracts text using NLP libraries'), ('03', 'TF-IDF vectorization + cosine similarity matching'), ('04', 'Match score is generated and candidate is ranked')] %}
+            <div style="display:flex;gap:14px;align-items:flex-start;">
+                <div style="font-family:var(--mono);font-size:.72rem;color:var(--accent);background:rgba(79,142,247,.1);padding:4px 8px;border-radius:6px;flex-shrink:0;">{{ step }}</div>
+                <div style="font-size:.875rem;color:var(--muted);padding-top:3px;">{{ desc }}</div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileNameEl = document.getElementById('fileName');
+const submitBtn = document.getElementById('submitBtn');
+
+fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) {
+        fileNameEl.textContent = fileInput.files[0].name;
+        dropZone.style.borderColor = 'var(--accent)';
+    }
+});
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        fileInput.files = dt.files;
+        fileNameEl.textContent = file.name;
+    }
+});
+
+document.getElementById('uploadForm').addEventListener('submit', () => {
+    submitBtn.textContent = '⏳ Processing...';
+    submitBtn.disabled = true;
+});
+</script>
+{% endblock %}

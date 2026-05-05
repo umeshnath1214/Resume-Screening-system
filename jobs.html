@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Jobs — ResumeAI{% endblock %}
+{% block page_title %}// Job Openings{% endblock %}
+
+{% block content %}
+<div class="grid-2">
+    <div>
+        <div class="card" style="margin-bottom:24px;">
+            <div class="card-title">// Add New Job</div>
+            <form method="POST">
+                <div class="form-group">
+                    <label>Job Title</label>
+                    <input type="text" name="job_title" required placeholder="e.g. Python Developer"/>
+                </div>
+                <div class="form-group">
+                    <label>Required Skills <span style="color:var(--muted);font-size:.72rem;">(comma-separated)</span></label>
+                    <input type="text" name="required_skills" required placeholder="Python, Flask, MySQL, NLP"/>
+                </div>
+                <div class="form-group">
+                    <label>Job Description</label>
+                    <textarea name="description" placeholder="Describe the role, responsibilities, and requirements..."></textarea>
+                </div>
+                <button class="btn btn-primary" type="submit">+ Add Job</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title">// Current Openings ({{ jobs|length }})</div>
+        {% if jobs %}
+            {% for job in jobs %}
+            <div style="border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                    <div>
+                        <div style="font-weight:600;font-size:.95rem;">{{ job.job_title }}</div>
+                        <div style="font-size:.72rem;color:var(--muted);font-family:var(--mono);margin-top:2px;">#{{ job.id }}</div>
+                    </div>
+                    <a href="{{ url_for('delete_job', job_id=job.id) }}" class="btn btn-danger btn-sm"
+                       onclick="return confirm('Delete this job?')">✕</a>
+                </div>
+                <div style="margin-bottom:8px;">
+                    {% for skill in job.required_skills.split(',') %}
+                        <span class="tag">{{ skill.strip() }}</span>
+                    {% endfor %}
+                </div>
+                {% if job.description %}
+                <div style="font-size:.8rem;color:var(--muted);line-height:1.5;">{{ job.description[:120] }}{% if job.description|length > 120 %}…{% endif %}</div>
+                {% endif %}
+                <div style="margin-top:10px;">
+                    <a href="{{ url_for('results', job_id=job.id) }}" class="btn btn-outline btn-sm">View Candidates →</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--muted);font-size:.875rem;text-align:center;padding:32px 0;">No jobs yet. Add one on the left.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

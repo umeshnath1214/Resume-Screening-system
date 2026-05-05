@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Candidates — ResumeAI{% endblock %}
+{% block page_title %}// Candidate Rankings{% endblock %}
+
+{% block content %}
+<div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap;">
+    <form method="GET" style="display:flex;gap:10px;align-items:center;">
+        <select name="job_id" onchange="this.form.submit()" style="padding:8px 14px;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;font-family:var(--sans);font-size:.875rem;outline:none;">
+            <option value="">All Jobs</option>
+            {% for job in jobs %}
+            <option value="{{ job.id }}" {% if selected_job == job.id|string %}selected{% endif %}>{{ job.job_title }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <div style="margin-left:auto;font-size:.8rem;color:var(--muted);">{{ candidates|length }} candidates</div>
+    <a href="{{ url_for('upload') }}" class="btn btn-primary btn-sm">↑ Upload New</a>
+</div>
+
+{% if candidates %}
+<div class="card">
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Candidate</th>
+                    <th>Email</th>
+                    <th>Job Applied</th>
+                    <th>Match Score</th>
+                    <th>Progress</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for c in candidates %}
+            <tr>
+                <td>
+                    <span style="font-family:var(--mono);font-size:.8rem;{% if loop.index==1 %}color:#ffd700{% elif loop.index==2 %}color:#c0c0c0{% elif loop.index==3 %}color:#cd7f32{% else %}color:var(--muted){% endif %}">
+                        {% if loop.index==1 %}🥇{% elif loop.index==2 %}🥈{% elif loop.index==3 %}🥉{% else %}#{{ loop.index }}{% endif %}
+                    </span>
+                </td>
+                <td style="font-weight:600;">{{ c.name }}</td>
+                <td style="color:var(--muted);font-size:.82rem;">{{ c.email }}</td>
+                <td style="color:var(--muted);font-size:.82rem;">{{ c.job_title or '—' }}</td>
+                <td>
+                    {% set s = c.match_score %}
+                    <span class="score-badge {% if s >= 70 %}score-high{% elif s >= 40 %}score-mid{% else %}score-low{% endif %}">
+                        {{ s }}%
+                    </span>
+                </td>
+                <td style="min-width:120px;">
+                    <div class="progress-bar-bg">
+                        <div class="progress-bar-fill" style="width:{{ c.match_score }}%;"></div>
+                    </div>
+                </td>
+                <td>
+                    <div style="display:flex;gap:8px;">
+                        <a href="{{ url_for('candidate_detail', cid=c.id) }}" class="btn btn-outline btn-sm">View</a>
+                        <a href="{{ url_for('delete_candidate', cid=c.id) }}" class="btn btn-danger btn-sm"
+                           onclick="return confirm('Remove this candidate?')">✕</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:48px;">
+    <div style="font-size:2rem;margin-bottom:12px;">📭</div>
+    <div style="color:var(--muted);">No candidates found. <a href="{{ url_for('upload') }}" style="color:var(--accent);">Upload resumes →</a></div>
+</div>
+{% endif %}
+{% endblock %}
