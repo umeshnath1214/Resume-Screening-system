@@ -1,5 +1,5 @@
 # AI-Powered Resume Screening System
-### BCA 6th Semester Major Project — Tarun Thapa (UU2309000378)
+### BCA 6th Semester Major Project — Umesh Nath (UU2309000385)
 ### Mentor: Dr. Monisha Awasthi | Uttaranchal University
 
 ---
